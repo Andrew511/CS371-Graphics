@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute  vec4 vPosition;
+attribute  vec3 vNormal;
+attribute  vec2 vTexCoord;
+
+uniform int texture_flag;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat3 normalMatrix;
+uniform vec4 ambientProduct1, diffuseProduct1, specularProduct1;
+uniform vec4 lightPosition1;
+
+uniform vec4 ambientProduct2, diffuseProduct2, specularProduct2;
+uniform vec4 lightPosition2;
+uniform float shininess;
+
+varying vec3 R;
+varying vec4 fColor;
+varying vec2 fTexCoord;
+
+void main() 
+{
+    vec3 pos = (modelViewMatrix * vPosition).xyz;
+     
+    //Light that moves with hero
+    vec3 light = (modelViewMatrix * lightPosition1).xyz;
+    vec3 light2 = (modelViewMatrix * lightPosition2).xyz;
+    // Normalized vector from pos to light
+ 
+    vec3 L = normalize( light - pos );
+
+    vec3 L2 = normalize( light - pos );
+ 
+    // Next two lines compute halfway vector
+     
+    vec3 E = normalize( pos );
+    vec3 H = normalize( L + E );
+
+    vec3 E2 = normalize( pos );
+    vec3 H2 = normalize( L2 + E2 );
+     
+    vec4 NN = vec4(vNormal,0);
+ 
+    // Transform vertex normal into eye coordinates
+        
+    vec3 N = normalize( (modelViewMatrix*NN).xyz);
+ 
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct1;
+    vec4 ambient2 = ambientProduct2;
+ 
+    float Kd = max( dot(L, N), 0.0 );
+    vec4  diffuse = Kd*diffuseProduct1;
+    float Kd2 = max( dot(L2, N), 0.0 );
+    vec4  diffuse2 = Kd*diffuseProduct2;
+ 
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specular = Ks * specularProduct1;
+
+    float Ks2 = pow( max(dot(N, H2), 0.0), shininess );
+    vec4  specular2 = Ks2 * specularProduct2;
+     
+    if( dot(L, N) < 0.0 ) {
+      specular = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+    if( dot(L2, N) < 0.0 ) {
+      specular2 = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+    if (texture_flag == 0) {
+    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+    fColor = (ambient) + (diffuse) + ( specular);
+    fColor += ambient2 + diffuse2 + specular2;
+    fColor.a = 1.0;
+  }
+  else
+    {
+      gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+      fTexCoord = vTexCoord;
+
+      vec3 eyePos  = normalize((modelViewMatrix*vPosition).xyz); 
+      
+          vec3 N = normalize(normalMatrix*vNormal.xyz); 
+          
+          R =  N;
+
+          fColor = (ambient) + (diffuse) + ( specular);
+          fColor += ambient2 + diffuse2 + specular2;
+          fColor.a = 1.0;
+    }
+} 
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+uniform highp int texture_flag;	// Necessary to be compatible with uniform in fragment shader
+uniform sampler2D texture;
+
+varying vec4 fColor;
+varying vec2 fTexCoord;
+
+varying vec3 R;
+uniform samplerCube texMap;
+uniform samplerCube texMap1;
+
+void main()
+{
+  if (texture_flag == 0) {
+    gl_FragColor = fColor;
+  } else if (texture_flag == 1) {
+    gl_FragColor = textureCube( texMap, R );
+    gl_FragColor += fColor;
+  } else {
+    gl_FragColor = textureCube( texMap1, R );
+    gl_FragColor += fColor;
+    
+  }
+}
+</script>
+
+<!--Ed Angel WebGL support libraries-->
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/webgl-debug.js"></script>
+<script type="text/javascript" src="sphere.js"></script>
+<script type="text/javascript" src="vw-model.js"></script>
+<script type="text/javascript" src="Arena.js"></script>
+<script type="text/javascript" src="GameObject.js"></script>
+<script type="text/javascript" src="Hero.js"></script>
+<script type="text/javascript" src="ThingSeeking.js"></script>
+<script type="text/javascript" src="Villain.js"></script>
+<script type="text/javascript" src="the-game.js"></script>
+<script type="text/javascript" src="Soccerball.js"></script>
+<script type="text/javascript" src="Wolf.js"></script>
+<script type="text/javascript" src="Skybox.js"></script>
+
+
+<body>
+<canvas id="gl-canvas" width="1000" height="625">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas> <br />
+<input type="text" name="" id="redScore" value="0" readonly>
+<label for="redScore">Score for Red Team</label> <br >
+<input type="text" name="" id="yellowScore" value="0" readonly>
+<label for="redScore">Score for Yellow Team</label> <br />
+Game Timer:
+<div id="timer"></div>
+Round Timer:
+<div id="timer2"></div>
+</body>
+</html>

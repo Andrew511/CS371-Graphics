@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+    varying vec4 vColor;
+attribute vec4 sPosition;  
+attribute vec4 gPosition;  
+uniform float tween;
+    uniform mat4 projection;
+	uniform float red1h;
+	uniform float red2h;
+	uniform float green1h;
+	uniform float green2h;
+	uniform float blue1h;
+	uniform float blue2h;
+    
+void main()
+{
+   gl_Position = projection * ((1.0 - tween) * sPosition + tween * gPosition);
+   gl_PointSize = 1.0;
+   vColor = ((1.0 - tween) * (vec4(red1h,green1h,blue1h,1))) + (tween * (vec4(red2h,green2h,blue2h,1)));
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+varying vec4 vColor;
+void main()
+{
+	
+    gl_FragColor = vColor;
+}
+</script>
+
+<!--Ed Angel's WebGL support libraries-->
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/webgl-debug.js"></script>
+<script type="text/javascript" src="assignment2.js"></script>
+<script type="text/javascript" src="tri.js"></script>
+<script type="text/javascript" src="dragon.js"></script>
+
+
+<body>
+<!--The style for the canvas should make the text in the caption appear to its right  -->
+<canvas id="gl-canvas" style="float:left; margin-right: 5px; background-color: black;" width="500" height="700">>
+</canvas>
+<div id="caption-for-the-goal">Morphing Triangle-to-Dragon</div> <br>
+Triangle Colors <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value=".6" id="red1Slide">Red Value: <span id="red1Val"> </span> <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value="0.0" id="green1Slide">Green Value: <span id="green1Val"> </span> <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value=".6" id="blue1Slide">Blue Value: <span id="blue1Val"> </span> <br>
+
+<br>
+Dragon Colors <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value="0.0" id="red2Slide">Red Value: <span id="red2Val"> </span> <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value=".6" id="green2Slide">Green Value: <span id="green2Val"> </span> <br>
+<input type="range" min="0.0" max="1.0" step="0.1" value=".6" id="blue2Slide">Blue Value: <span id="blue2Val"> </span> <br>
+<br>
+Morph Speed <br>
+<input type="range" min="0.0" max="0.1" step="0.001" value=".01" id="morphSpeed">Morph Speed <span id="speedVal"> </span> <br>
+<br>
+
+<button id= "continuous">Toggle continuous morph</button>
+</body>
+</html>
